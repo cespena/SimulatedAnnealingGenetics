@@ -124,7 +124,7 @@ std::ostream& operator<<(std::ostream& os, const Matrix& m)
 double Matrix::dot_product(const std::vector<double>& lhs_row, const int& rhs_col, Matrix& rhs) const
 {
 	double result = 0;
-	for (int i = 0; i < rows; i++)
+	for (int i = 0; i < cols; i++)
 		result += lhs_row[i] * rhs[i][rhs_col];
 	return result;
 }

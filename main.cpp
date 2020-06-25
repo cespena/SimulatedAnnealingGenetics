@@ -16,10 +16,10 @@ int main()
 	//I am not sure how the matrices and vectors will be given. I am currently 
 	//using the sizes of the matrices and vectors from the original program.
 	std::vector<std::pair<int, int>> new_matrices;
-	new_matrices.push_back(std::make_pair(2, 291));	//G dimensions
-	new_matrices.push_back(std::make_pair(2, 18));	//E dimensions
-	new_matrices.push_back(std::make_pair(291, 1));	//X_tr dimensions
-	new_matrices.push_back(std::make_pair(18,  1));	//Y_tr dimensions
+	new_matrices.push_back(std::make_pair(900, 1000));	//G dimensions
+	new_matrices.push_back(std::make_pair(900, 700));	//E dimensions
+	new_matrices.push_back(std::make_pair(1000, 1));	//X_tr dimensions
+	new_matrices.push_back(std::make_pair(700,  1));	//Y_tr dimensions
 
 
 	//Randomly generate values for matrices and vectors
