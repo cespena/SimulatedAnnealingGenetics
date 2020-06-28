@@ -50,8 +50,12 @@ private:
 	//as the Key and the new change as the Value. The Keys will be in the form of an 
 	//std::pair(row, col). Since we are using an std::pair, the current hash function
 	//will not work. A custom hash function needs to be implemented.
-	std::unordered_map<int, double, pair_hash> G_changes;
-	std::unordered_map<int, double, pair_hash> E_changes;
+	//std::unordered_map<int, double, pair_hash> G_changes;
+	//std::unordered_map<int, double, pair_hash> E_changes;
+	std::vector<double> G_changes;
+	std::vector<int>	G_queue;
+	std::vector<double> E_changes;
+	std::vector<int>	E_queue;
 
 	Matrix G;
 	Matrix E;

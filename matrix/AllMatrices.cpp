@@ -50,12 +50,21 @@ void AllMatrices::setup()
 
 	//Reserve a decent bucket count in order to avoid rehashing of the HashMap. Currently, 
 	//the bucket count will be the size of their respective matrices.
-	G_changes.reserve( (G.get_rows() * G.get_cols()) );
-	E_changes.reserve( (E.get_rows() * E.get_cols()) );
+	int G_size = G.get_rows() * G.get_cols();
+	int E_size = E.get_rows() * E.get_cols();
+
+	G_changes.reserve(G_size);
+	E_changes.reserve(E_size);
+
+	for (int i = 0; i < G_size; i++)
+		G_changes.push_back(0);
+
+	for (int i = 0; i < E_size; i++)
+		E_changes.push_back(0);
 
 	//Change the load factor so that the HashMaps won't rehash themselves
-	G_changes.max_load_factor(4.0);
-	E_changes.max_load_factor(4.0);
+	//G_changes.max_load_factor(4.0);
+	//E_changes.max_load_factor(4.0);
 
 }
 
@@ -84,7 +93,9 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &X_tr;
 		result_vector_ptr = &T_G;
 		second_result_vector_ptr = &T_E;
-		G_changes[hash_element(r, c, G.get_cols())] = new_value; //Include change into G_changes
+		int hashed_value = hash_element(r, c, G.get_cols());
+		G_changes[hashed_value] = new_value; //Include change into G_changes
+		G_queue.push_back(hashed_value);
 	}
 	else
 	{
@@ -92,7 +103,9 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &Y_tr;
 		result_vector_ptr = &T_E;
 		second_result_vector_ptr = &T_G;
-		E_changes[hash_element(r, c, E.get_cols())] = new_value; //Include change into E_changes
+		int hashed_value = hash_element(r, c, E.get_cols());
+		E_changes[hashed_value] = new_value; //Include change into E_changes
+		E_queue.push_back(hashed_value);
 	}
 
 	//retrieve old values from matrix and vector
@@ -156,26 +169,40 @@ void AllMatrices::update_best()
 	//since only the changes between the matrices are being recorded.
 
 	//Make the changes to G_best
-	for(auto change = G_changes.begin(); change != G_changes.end(); change++)
+	/*for(auto change = G_changes.begin(); change != G_changes.end(); change++)
 	{
 		//G_best[change->first.first][change->first.second] = change->second;
 		std::pair<int, int> rows_cols = unhash_element(change->first, G.get_cols());
 		G_best[rows_cols.first][rows_cols.second] = change->second;
+	}*/
+
+	while (!G_queue.empty())
+	{
+		std::pair<int, int> rows_cols = unhash_element(G_queue.back(), G.get_cols());
+		G_best[rows_cols.first][rows_cols.second] = G_changes[G_queue.back()];
+		G_queue.pop_back();
 	}
 
 	//Make the changes to E_best
-	for (auto change = E_changes.begin(); change != E_changes.end(); change++)
+	/*for (auto change = E_changes.begin(); change != E_changes.end(); change++)
 	{
 		//E_best[change->first.first][change->first.second] = change->second;
 		std::pair<int, int> rows_cols = unhash_element(change->first, E.get_cols());
 		E_best[rows_cols.first][rows_cols.second] = change->second;
+	}*/
+
+	while (!E_queue.empty())
+	{
+		std::pair<int, int> rows_cols = unhash_element(E_queue.back(), E.get_cols());
+		E_best[rows_cols.first][rows_cols.second] = E_changes[E_queue.back()];
+		E_queue.pop_back();
 	}
 
 	//Since the best matrices have the same values as their respective matrices, 
 	//their HashMaps can be cleared so that the next time the best matrices need 
 	//to be updated, we don't need to loop through old values.
-	G_changes.clear();
-	E_changes.clear();
+	//G_changes.clear();
+	//E_changes.clear();
 }
 
 //Returns G_best and E_best at the end of the algorithm
