@@ -70,8 +70,8 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 		pBad = cb.get_pBad();
 
 		//For debugging. Output iteration of main loop
-		if (SA_iter % 10000 == 0)
-			std::cout << "Iteration #" << SA_iter  << "\t\ttemp: " << current_temp << std::endl;
+		//if (SA_iter % 10000 == 0)
+		//	std::cout << "Iteration #" << SA_iter  << "\t\ttemp: " << current_temp << std::endl;
 		
 	}
 
@@ -81,7 +81,7 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 	std::cout << "Time taken: " << duration.count() << std::endl;
 
 	//For debugging. Used to count accepted and rejected
-	//std::cout << "count is: " << SA_iter << '\t' << "if's: " << if_count << '\t' << "if^2: " << if_if_count << '\t' << "else's: " << else_count << std::endl;
+	std::cout << "count is: " << SA_iter << '\t' << "if's: " << if_count << '\t' << "if^2: " << if_if_count << '\t' << "else's: " << else_count << std::endl;
 }
 
 //Returns G_best and E_best. Call this after the algorithm has executed

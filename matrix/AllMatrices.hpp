@@ -11,9 +11,9 @@
 //needs to be implemented.
 struct pair_hash
 {
-	std::size_t operator() (const std::pair<int, int> &pair) const
+	std::size_t operator() (const int& element) const
 	{
-		return std::hash<int>()(pair.first) ^ std::hash<int>()(pair.second);
+		return element;
 	}
 };
 
@@ -44,13 +44,14 @@ public:
 	void print();
 
 
+
 private:
 	//HashMaps that will keep track of the changes of G and E. Uses rows, and columns
 	//as the Key and the new change as the Value. The Keys will be in the form of an 
 	//std::pair(row, col). Since we are using an std::pair, the current hash function
 	//will not work. A custom hash function needs to be implemented.
-	std::unordered_map<std::pair<int, int>, double, pair_hash> G_changes;
-	std::unordered_map<std::pair<int, int>, double, pair_hash> E_changes;
+	std::unordered_map<int, double, pair_hash> G_changes;
+	std::unordered_map<int, double, pair_hash> E_changes;
 
 	Matrix G;
 	Matrix E;
@@ -61,6 +62,11 @@ private:
 	Matrix T_G;
 	Matrix T_E;
 	double result;
+
+	//Private Functions
+
+	int hash_element(int r, int c, int columns); //Hash function to hash rows and columns
+	std::pair<int, int> unhash_element(int element, int columns); //Unhash functions to return key to rows and columns
 
 
 };

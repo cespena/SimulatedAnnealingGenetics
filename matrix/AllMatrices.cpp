@@ -49,12 +49,13 @@ void AllMatrices::setup()
 	E_best = E;
 
 	//Reserve a decent bucket count in order to avoid rehashing of the HashMap. Currently, 
-	//the bucket count will be 1/2 of the size of their respective matrices.
-	G_changes.reserve( (G.get_rows() * G.get_cols()) * 2 );
-	E_changes.reserve( (E.get_rows() * E.get_cols()) * 2 );
+	//the bucket count will be the size of their respective matrices.
+	G_changes.reserve( (G.get_rows() * G.get_cols()) );
+	E_changes.reserve( (E.get_rows() * E.get_cols()) );
 
-	G_changes.max_load_factor(2.0);
-	E_changes.max_load_factor(2.0);
+	//Change the load factor so that the HashMaps won't rehash themselves
+	G_changes.max_load_factor(4.0);
+	E_changes.max_load_factor(4.0);
 
 }
 
@@ -83,7 +84,7 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &X_tr;
 		result_vector_ptr = &T_G;
 		second_result_vector_ptr = &T_E;
-		G_changes[std::make_pair(r, c)] = new_value; //Include change into G_changes
+		G_changes[hash_element(r, c, G.get_cols())] = new_value; //Include change into G_changes
 	}
 	else
 	{
@@ -91,7 +92,7 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &Y_tr;
 		result_vector_ptr = &T_E;
 		second_result_vector_ptr = &T_G;
-		E_changes[std::make_pair(r, c)] = new_value; //Include change into E_changes
+		E_changes[hash_element(r, c, E.get_cols())] = new_value; //Include change into E_changes
 	}
 
 	//retrieve old values from matrix and vector
@@ -156,11 +157,19 @@ void AllMatrices::update_best()
 
 	//Make the changes to G_best
 	for(auto change = G_changes.begin(); change != G_changes.end(); change++)
-		G_best[change->first.first][change->first.second] = change->second;
+	{
+		//G_best[change->first.first][change->first.second] = change->second;
+		std::pair<int, int> rows_cols = unhash_element(change->first, G.get_cols());
+		G_best[rows_cols.first][rows_cols.second] = change->second;
+	}
 
 	//Make the changes to E_best
 	for (auto change = E_changes.begin(); change != E_changes.end(); change++)
-		E_best[change->first.first][change->first.second] = change->second;
+	{
+		//E_best[change->first.first][change->first.second] = change->second;
+		std::pair<int, int> rows_cols = unhash_element(change->first, E.get_cols());
+		E_best[rows_cols.first][rows_cols.second] = change->second;
+	}
 
 	//Since the best matrices have the same values as their respective matrices, 
 	//their HashMaps can be cleared so that the next time the best matrices need 
@@ -191,4 +200,17 @@ void AllMatrices::print()
 	std::cout << "T_E:\n" << T_E << std::endl;
 	std::cout << "result: " << result << std::endl;
 */
+}
+
+
+////Private Functions
+
+int AllMatrices::hash_element(int r, int c, int columns)
+{
+	return (r * columns) + c;
+}
+
+std::pair<int, int> AllMatrices::unhash_element(int element, int columns)
+{
+	return std::make_pair(element / columns, element % columns);
 }
