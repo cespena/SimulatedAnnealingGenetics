@@ -41,7 +41,7 @@ int main()
 	am.setup();
 
 	//Set G_best and E_best to the current initial values of G and E respectively
-	am.update_best();
+	//am.update_best();/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	//Run the algorithm. Pass all the created matrices and vectors to the algorithm
 	sa.run(std::move(am));

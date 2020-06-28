@@ -36,7 +36,7 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 
 
 		//Get result of objective function
-		double obj_new = objective_function();
+		double obj_new = objective_function(am.get_result());
 
 
 		//increase iterations
@@ -70,8 +70,8 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 		pBad = cb.get_pBad();
 
 		//For debugging. Output iteration of main loop
-		//if (SA_iter % 100000 == 0)
-		//	std::cout << "Iteration #" << SA_iter  << "\t\ttemp: " << current_temp << std::endl;
+		if (SA_iter % 10000 == 0)
+			std::cout << "Iteration #" << SA_iter  << "\t\ttemp: " << current_temp << std::endl;
 		
 	}
 
@@ -139,9 +139,9 @@ RandomNumbers SimulatedAnnealing::generate_random_numbers()
 }
 
 //Returns the result of the objective function
-double SimulatedAnnealing::objective_function()
+double SimulatedAnnealing::objective_function(double result)
 {
-	//Until an objective function is found, 0.5 will be returned
-	return 0.5;
+	//Until an objective function is found, result * 0.5 will be returned
+	return result * 0.5;
 }
 

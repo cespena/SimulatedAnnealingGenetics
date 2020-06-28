@@ -3,7 +3,19 @@
 
 #include <cassert>
 #include <utility>
+#include <functional>
+#include <unordered_map>
 #include "Matrix.hpp"
+
+//In order for the HashMap to use std::pair as its Key, a custom hash function
+//needs to be implemented.
+struct pair_hash
+{
+	std::size_t operator() (const std::pair<int, int> &pair) const
+	{
+		return std::hash<int>()(pair.first) ^ std::hash<int>()(pair.second);
+	}
+};
 
 class AllMatrices
 {
@@ -33,6 +45,13 @@ public:
 
 
 private:
+	//HashMaps that will keep track of the changes of G and E. Uses rows, and columns
+	//as the Key and the new change as the Value. The Keys will be in the form of an 
+	//std::pair(row, col). Since we are using an std::pair, the current hash function
+	//will not work. A custom hash function needs to be implemented.
+	std::unordered_map<std::pair<int, int>, double, pair_hash> G_changes;
+	std::unordered_map<std::pair<int, int>, double, pair_hash> E_changes;
+
 	Matrix G;
 	Matrix E;
 	Matrix G_best;

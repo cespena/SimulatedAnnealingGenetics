@@ -43,6 +43,19 @@ void AllMatrices::setup()
 	T_G = G * X_tr;
 	T_E = E * Y_tr;
 	result = T_G.vec_dot_product(T_E);
+
+	//Set G_best and E_best to the current initial values of G and E respectively
+	G_best = G;
+	E_best = E;
+
+	//Reserve a decent bucket count in order to avoid rehashing of the HashMap. Currently, 
+	//the bucket count will be 1/2 of the size of their respective matrices.
+	G_changes.reserve( (G.get_rows() * G.get_cols()) * 2 );
+	E_changes.reserve( (E.get_rows() * E.get_cols()) * 2 );
+
+	G_changes.max_load_factor(2.0);
+	E_changes.max_load_factor(2.0);
+
 }
 
 std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, double new_value)
@@ -62,12 +75,15 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 	double result_vector_old_value;
 	std::pair<double, double> old_values_pair;
 
+	//Used to set the pointer variables to the appropriate variables. This
+	//depends on which of the two matrices is being changed.
 	if (G_or_E == 0)
 	{
 		matrix_ptr = &G;
 		xy_vector_ptr = &X_tr;
 		result_vector_ptr = &T_G;
 		second_result_vector_ptr = &T_E;
+		G_changes[std::make_pair(r, c)] = new_value; //Include change into G_changes
 	}
 	else
 	{
@@ -75,6 +91,7 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &Y_tr;
 		result_vector_ptr = &T_E;
 		second_result_vector_ptr = &T_G;
+		E_changes[std::make_pair(r, c)] = new_value; //Include change into E_changes
 	}
 
 	//retrieve old values from matrix and vector
@@ -128,8 +145,28 @@ double AllMatrices::get_result()
 //Updates current G_best and E_best to current G and E
 void AllMatrices::update_best()
 {
-	G_best = G;
-	E_best = E;
+	//G_best = G;
+	//E_best = E;
+	//Before, G_best and E_best would cope every element of G and E 
+	//respectively. This is a waste of time since not all the elements
+	//change when updating G_best and E_best. Some elements may remain 
+	//the same. Now, a HashMap is used so that only the changes are
+	//recorded. This means that copying should be much more efficient
+	//since only the changes between the matrices are being recorded.
+
+	//Make the changes to G_best
+	for(auto change = G_changes.begin(); change != G_changes.end(); change++)
+		G_best[change->first.first][change->first.second] = change->second;
+
+	//Make the changes to E_best
+	for (auto change = E_changes.begin(); change != E_changes.end(); change++)
+		E_best[change->first.first][change->first.second] = change->second;
+
+	//Since the best matrices have the same values as their respective matrices, 
+	//their HashMaps can be cleared so that the next time the best matrices need 
+	//to be updated, we don't need to loop through old values.
+	G_changes.clear();
+	E_changes.clear();
 }
 
 //Returns G_best and E_best at the end of the algorithm
