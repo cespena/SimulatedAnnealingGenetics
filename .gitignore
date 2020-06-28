@@ -1,0 +1,6 @@
+a.out
+main.o
+matrix/Matrix.o
+matrix/AllMatrices.o
+annealing/CircularBuffer.o
+annealing/SimulatedAnnealing.o
