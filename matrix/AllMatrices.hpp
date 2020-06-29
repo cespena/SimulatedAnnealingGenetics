@@ -3,19 +3,8 @@
 
 #include <cassert>
 #include <utility>
-#include <functional>
-#include <unordered_map>
 #include "Matrix.hpp"
-
-//In order for the HashMap to use std::pair as its Key, a custom hash function
-//needs to be implemented.
-struct pair_hash
-{
-	std::size_t operator() (const int& element) const
-	{
-		return element;
-	}
-};
+#include "Stack.hpp"
 
 class AllMatrices
 {
@@ -27,35 +16,30 @@ public:
 	
 	//Setup functions
 	void set_matrix(int selector, std::vector<double> values, int r, int c);	//Assign matrix/vector its dimensions and values
-	void setup();	//Create T_G, T_E and T_G dot T_E
+	void setup();	//Create T_G, T_E and T_G dot T_E. Updated: Set best matrices to equal the current matrices. Set up stacks
 
 	//Used to give random value to a random matrix's element
-	std::pair<double, double> change_value(int G_or_E, int r, int c, double value);
+	//Updated to accept bool value
+	std::pair<double, double> change_value(int G_or_E, int r, int c, double value, bool is_new);
 
 	//Accessing 
 	std::pair<int, int> get_matrix_dimensions(int G_or_E);	//get dimensions of either G or E
 	double get_result();	//Returns T_G dot T_E
 	
 	//Handle best matrices
-	void update_best();	//update G_best and E_best to the current G and E matrices
+	void update_best();	//update G_best and E_best to the current G and E matrices. Updated: Use stacks to update best matrices
 	std::pair<Matrix, Matrix> get_best();	//return G_best and E_best
 	
 	//For debugging. Prints all the member variables.
+	void print_stacks();
 	void print();
 
-
-
 private:
-	//HashMaps that will keep track of the changes of G and E. Uses rows, and columns
-	//as the Key and the new change as the Value. The Keys will be in the form of an 
-	//std::pair(row, col). Since we are using an std::pair, the current hash function
-	//will not work. A custom hash function needs to be implemented.
-	//std::unordered_map<int, double, pair_hash> G_changes;
-	//std::unordered_map<int, double, pair_hash> E_changes;
-	std::vector<double> G_changes;
-	std::vector<int>	G_queue;
-	std::vector<double> E_changes;
-	std::vector<int>	E_queue;
+	//Stacks that will keep track of the changes of G and E. Push (row, column) pairs
+	//onto the stack. When we need to update, we pop out the coordinates and search
+	//for the new value inside of the current matrices.
+	Stack G_stack;
+	Stack E_stack;
 
 	Matrix G;
 	Matrix E;
@@ -66,12 +50,6 @@ private:
 	Matrix T_G;
 	Matrix T_E;
 	double result;
-
-	//Private Functions
-
-	int hash_element(int r, int c, int columns); //Hash function to hash rows and columns
-	std::pair<int, int> unhash_element(int element, int columns); //Unhash functions to return key to rows and columns
-
 
 };
 

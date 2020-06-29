@@ -48,27 +48,13 @@ void AllMatrices::setup()
 	G_best = G;
 	E_best = E;
 
-	//Reserve a decent bucket count in order to avoid rehashing of the HashMap. Currently, 
-	//the bucket count will be the size of their respective matrices.
-	int G_size = G.get_rows() * G.get_cols();
-	int E_size = E.get_rows() * E.get_cols();
-
-	G_changes.reserve(G_size);
-	E_changes.reserve(E_size);
-
-	for (int i = 0; i < G_size; i++)
-		G_changes.push_back(0);
-
-	for (int i = 0; i < E_size; i++)
-		E_changes.push_back(0);
-
-	//Change the load factor so that the HashMaps won't rehash themselves
-	//G_changes.max_load_factor(4.0);
-	//E_changes.max_load_factor(4.0);
+	//Setup the two stacks
+	G_stack.setup(G.get_rows() * G.get_cols());
+	E_stack.setup(E.get_rows() * E.get_cols());
 
 }
 
-std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, double new_value)
+std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, double new_value, bool is_new)
 {
 	//Updates the values in matrix G or E, vectors T_G or T_E, and the dot
 	//product of T_G and T_E. However, rather than doing dot products in 
@@ -76,7 +62,7 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 	//elements need to be updated and by how much. This should greatly 
 	//reduce time since the program won't need to loop through vectors
 	//and matrices.
-
+	//Updated: Accept new parameter is_new. Use stack implementation
 	Matrix* matrix_ptr;
 	Matrix* xy_vector_ptr;
 	Matrix* result_vector_ptr;
@@ -93,9 +79,7 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &X_tr;
 		result_vector_ptr = &T_G;
 		second_result_vector_ptr = &T_E;
-		int hashed_value = hash_element(r, c, G.get_cols());
-		G_changes[hashed_value] = new_value; //Include change into G_changes
-		G_queue.push_back(hashed_value);
+		G_stack.new_item(r, c, is_new); //Add change to stack
 	}
 	else
 	{
@@ -103,9 +87,8 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &Y_tr;
 		result_vector_ptr = &T_E;
 		second_result_vector_ptr = &T_G;
-		int hashed_value = hash_element(r, c, E.get_cols());
-		E_changes[hashed_value] = new_value; //Include change into E_changes
-		E_queue.push_back(hashed_value);
+		E_stack.new_item(r, c, is_new); //Add change to stack
+		
 	}
 
 	//retrieve old values from matrix and vector
@@ -159,50 +142,24 @@ double AllMatrices::get_result()
 //Updates current G_best and E_best to current G and E
 void AllMatrices::update_best()
 {
-	//G_best = G;
-	//E_best = E;
 	//Before, G_best and E_best would cope every element of G and E 
 	//respectively. This is a waste of time since not all the elements
 	//change when updating G_best and E_best. Some elements may remain 
-	//the same. Now, a HashMap is used so that only the changes are
+	//the same. Now, a stack is used so that only the changes are
 	//recorded. This means that copying should be much more efficient
 	//since only the changes between the matrices are being recorded.
-
-	//Make the changes to G_best
-	/*for(auto change = G_changes.begin(); change != G_changes.end(); change++)
+	while(!G_stack.empty())
 	{
-		//G_best[change->first.first][change->first.second] = change->second;
-		std::pair<int, int> rows_cols = unhash_element(change->first, G.get_cols());
-		G_best[rows_cols.first][rows_cols.second] = change->second;
-	}*/
-
-	while (!G_queue.empty())
-	{
-		std::pair<int, int> rows_cols = unhash_element(G_queue.back(), G.get_cols());
-		G_best[rows_cols.first][rows_cols.second] = G_changes[G_queue.back()];
-		G_queue.pop_back();
+		std::pair<int, int> rows_cols = G_stack.pop_stack();
+		G_best[rows_cols.first][rows_cols.second] = G[rows_cols.first][rows_cols.second];
 	}
 
-	//Make the changes to E_best
-	/*for (auto change = E_changes.begin(); change != E_changes.end(); change++)
+	while (!E_stack.empty())
 	{
-		//E_best[change->first.first][change->first.second] = change->second;
-		std::pair<int, int> rows_cols = unhash_element(change->first, E.get_cols());
-		E_best[rows_cols.first][rows_cols.second] = change->second;
-	}*/
-
-	while (!E_queue.empty())
-	{
-		std::pair<int, int> rows_cols = unhash_element(E_queue.back(), E.get_cols());
-		E_best[rows_cols.first][rows_cols.second] = E_changes[E_queue.back()];
-		E_queue.pop_back();
+		std::pair<int, int> rows_cols = E_stack.pop_stack();
+		E_best[rows_cols.first][rows_cols.second] = E[rows_cols.first][rows_cols.second];
 	}
 
-	//Since the best matrices have the same values as their respective matrices, 
-	//their HashMaps can be cleared so that the next time the best matrices need 
-	//to be updated, we don't need to loop through old values.
-	//G_changes.clear();
-	//E_changes.clear();
 }
 
 //Returns G_best and E_best at the end of the algorithm
@@ -212,32 +169,28 @@ std::pair<Matrix, Matrix> AllMatrices::get_best()
 	return result;
 }
 
+void AllMatrices::print_stacks()
+{
+	std::cout << "G_stack: ";
+	G_stack.print();
+	std::cout << "E_stack: ";
+	E_stack.print();
+}
+
 //Print all matrices. Used for debugging
 void AllMatrices::print()
 {
 	//Uncomment the matrices that you need to print
-/*
+
 	std::cout << "G:\n" << G << std::endl;
 	std::cout << "E:\n" << E << std::endl;
 	std::cout << "G_best\n" << G_best << std::endl;
 	std::cout << "E_best\n" << E_best << std::endl;
+/*
 	std::cout << "X_tr:\n" << X_tr << std::endl;
 	std::cout << "Y_tr:\n" << Y_tr << std::endl;
 	std::cout << "T_G:\n" << T_G << std::endl;
 	std::cout << "T_E:\n" << T_E << std::endl;
 	std::cout << "result: " << result << std::endl;
 */
-}
-
-
-////Private Functions
-
-int AllMatrices::hash_element(int r, int c, int columns)
-{
-	return (r * columns) + c;
-}
-
-std::pair<int, int> AllMatrices::unhash_element(int element, int columns)
-{
-	return std::make_pair(element / columns, element % columns);
 }

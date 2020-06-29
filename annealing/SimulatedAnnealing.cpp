@@ -32,7 +32,7 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 		//Update the appropriate matrix. 
 		//old_values.first = value of old element that was changed.
 		//old_values.second = value of old dot product of vectors T_G and T_E
-		std::pair<double, double> old_values = am.change_value(rn.G_or_E, rn.row, rn.col, rn.new_value);
+		std::pair<double, double> old_values = am.change_value(rn.G_or_E, rn.row, rn.col, rn.new_value, true);
 
 
 		//Get result of objective function
@@ -62,7 +62,7 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 		else	//if not, revert back to old values and insert pAcc to circular buffer
 		{
 			else_count++;	//for debugging
-			am.change_value(rn.G_or_E, rn.row, rn.col, old_values.first);
+			am.change_value(rn.G_or_E, rn.row, rn.col, old_values.first, false);
 			cb.insert_value(SA_pAcc);
 		}
 		
@@ -139,6 +139,10 @@ RandomNumbers SimulatedAnnealing::generate_random_numbers()
 }
 
 //Returns the result of the objective function
+//Updated: Included the value of (T_G dot T_E) as a parameter. Rather than returning 
+//0.5 all the time, (T_G dot T_E) * 0.5 shall be used. This is still temporary as a
+//real objective function has not be given, however this temporary implementation 
+//will make the algorithm work.
 double SimulatedAnnealing::objective_function(double result)
 {
 	//Until an objective function is found, result * 0.5 will be returned
