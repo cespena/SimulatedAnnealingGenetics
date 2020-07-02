@@ -44,17 +44,9 @@ void AllMatrices::setup()
 	T_E = E * Y_tr;
 	result = T_G.vec_dot_product(T_E);
 
-	//Set G_best and E_best to the current initial values of G and E respectively
-	G_best = G;
-	E_best = E;
-
-	//Setup the two stacks
-	G_stack.setup(G.get_rows() * G.get_cols());
-	E_stack.setup(E.get_rows() * E.get_cols());
-
 }
 
-std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, double new_value, bool is_new)
+std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, double new_value)
 {
 	//Updates the values in matrix G or E, vectors T_G or T_E, and the dot
 	//product of T_G and T_E. However, rather than doing dot products in 
@@ -62,7 +54,6 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 	//elements need to be updated and by how much. This should greatly 
 	//reduce time since the program won't need to loop through vectors
 	//and matrices.
-	//Updated: Accept new parameter is_new. Use stack implementation
 	Matrix* matrix_ptr;
 	Matrix* xy_vector_ptr;
 	Matrix* result_vector_ptr;
@@ -79,7 +70,6 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &X_tr;
 		result_vector_ptr = &T_G;
 		second_result_vector_ptr = &T_E;
-		G_stack.new_item(r, c, is_new); //Add change to stack
 	}
 	else
 	{
@@ -87,7 +77,6 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 		xy_vector_ptr = &Y_tr;
 		result_vector_ptr = &T_E;
 		second_result_vector_ptr = &T_G;
-		E_stack.new_item(r, c, is_new); //Add change to stack
 		
 	}
 
@@ -108,7 +97,6 @@ std::pair<double, double> AllMatrices::change_value(int G_or_E, int r, int c, do
 	result -= (result_vector_old_value * (*second_result_vector_ptr)[r][0]);
 	result += ((*result_vector_ptr)[r][0] * (*second_result_vector_ptr)[r][0]);
 
-	//print(); //remember to remove//////////////////
 	
 	return old_values_pair;
 
@@ -139,42 +127,11 @@ double AllMatrices::get_result()
 	return result;
 }
 
-//Updates current G_best and E_best to current G and E
-void AllMatrices::update_best()
-{
-	//Before, G_best and E_best would cope every element of G and E 
-	//respectively. This is a waste of time since not all the elements
-	//change when updating G_best and E_best. Some elements may remain 
-	//the same. Now, a stack is used so that only the changes are
-	//recorded. This means that copying should be much more efficient
-	//since only the changes between the matrices are being recorded.
-	while(!G_stack.empty())
-	{
-		std::pair<int, int> rows_cols = G_stack.pop_stack();
-		G_best[rows_cols.first][rows_cols.second] = G[rows_cols.first][rows_cols.second];
-	}
-
-	while (!E_stack.empty())
-	{
-		std::pair<int, int> rows_cols = E_stack.pop_stack();
-		E_best[rows_cols.first][rows_cols.second] = E[rows_cols.first][rows_cols.second];
-	}
-
-}
-
-//Returns G_best and E_best at the end of the algorithm
+//Returns G and E at the end of the algorithm
 std::pair<Matrix, Matrix> AllMatrices::get_best()
 {
-	std::pair<Matrix, Matrix> result = std::make_pair(G_best, E_best);
-	return result;
-}
-
-void AllMatrices::print_stacks()
-{
-	std::cout << "G_stack: ";
-	G_stack.print();
-	std::cout << "E_stack: ";
-	E_stack.print();
+	std::pair<Matrix, Matrix> pair_result = std::make_pair(G, E);
+	return pair_result;
 }
 
 //Print all matrices. Used for debugging
@@ -184,8 +141,6 @@ void AllMatrices::print()
 
 	std::cout << "G:\n" << G << std::endl;
 	std::cout << "E:\n" << E << std::endl;
-	std::cout << "G_best\n" << G_best << std::endl;
-	std::cout << "E_best\n" << E_best << std::endl;
 /*
 	std::cout << "X_tr:\n" << X_tr << std::endl;
 	std::cout << "Y_tr:\n" << Y_tr << std::endl;

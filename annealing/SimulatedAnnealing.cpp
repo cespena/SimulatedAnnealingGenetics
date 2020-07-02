@@ -7,7 +7,6 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 
 	//For debugging
 	int if_count = 0;
-	int if_if_count = 0;
 	int else_count = 0;
 
 	//Initialize temperatures and loop counters
@@ -32,7 +31,7 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 		//Update the appropriate matrix. 
 		//old_values.first = value of old element that was changed.
 		//old_values.second = value of old dot product of vectors T_G and T_E
-		std::pair<double, double> old_values = am.change_value(rn.G_or_E, rn.row, rn.col, rn.new_value, true);
+		std::pair<double, double> old_values = am.change_value(rn.G_or_E, rn.row, rn.col, rn.new_value);
 
 
 		//Get result of objective function
@@ -51,18 +50,12 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 		if (SA_r < SA_pAcc)	//If there is improvement, save appropriate variables
 		{
 			if_count++;	//for debugging
-			if(obj > obj_new)
-			{
-				if_if_count++;	//for debuggin
-				am.update_best();
-			}
-
 			obj = obj_new;
 		}
 		else	//if not, revert back to old values and insert pAcc to circular buffer
 		{
 			else_count++;	//for debugging
-			am.change_value(rn.G_or_E, rn.row, rn.col, old_values.first, false);
+			am.change_value(rn.G_or_E, rn.row, rn.col, old_values.first);
 			cb.insert_value(SA_pAcc);
 		}
 		
@@ -81,10 +74,10 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 	std::cout << "Time taken: " << duration.count() << std::endl;
 
 	//For debugging. Used to count accepted and rejected
-	std::cout << "count is: " << SA_iter << '\t' << "if's: " << if_count << '\t' << "if^2: " << if_if_count << '\t' << "else's: " << else_count << std::endl;
+	std::cout << "count is: " << SA_iter << '\t' << "if's: " << if_count  << '\t' << "else's: " << else_count << std::endl;
 }
 
-//Returns G_best and E_best. Call this after the algorithm has executed
+//Returns G and E. Call this after the algorithm has executed
 std::pair<Matrix, Matrix> SimulatedAnnealing::SA_results()
 {
 	return am.get_best();
