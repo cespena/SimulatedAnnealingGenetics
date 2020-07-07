@@ -99,6 +99,21 @@ Matrix Matrix::operator*(Matrix& rhs) const
 	return result;
 }
 
+Matrix Matrix::operator-(Matrix& rhs) const
+{
+	Matrix result(rows, cols);
+
+	for (int r = 0; r < rows; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			result[r][c] = matrix[r][c] - rhs[r][c];
+		}
+	}
+
+	return result;
+}
+
 double Matrix::vec_dot_product(Matrix& rhs) const
 {
 	double result = 0;

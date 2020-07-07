@@ -23,6 +23,7 @@ public:
 
 	//Math Operations
 	Matrix operator*(Matrix& rhs) const;		//Matrix Multiplication
+	Matrix operator-(Matrix& rhs) const;
 	double vec_dot_product(Matrix& rhs) const;	//Dot product between vectors (Matrices with only 1 column)
 
 	//Output Matrix

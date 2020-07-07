@@ -54,7 +54,7 @@ private:
 	void set_temps();
 	void set_iterations();
 	RandomNumbers generate_random_numbers();
-	double objective_function(double result);
+	double objective_function();
 
 
 
