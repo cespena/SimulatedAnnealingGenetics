@@ -12,13 +12,16 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 	//Initialize temperatures and loop counters
 	set_temps();
 	set_iterations();
-	
+
+	//For debugging. Print initial and final temps.
+	std::cout << "Initial temp: " << initial_temp << "\tFinal temp: " << final_temp << std::endl;
+
 	//Probability of accepting bad result
 	pBad = 0.1;
 	//Store best (lowest) objective value so far
 	double obj = 1e30;
 
-	std::uniform_real_distribution<double> distribution(0.0, 1.0);
+	std::uniform_real_distribution<double> distribution(0.0, std::nextafter(1.0, std::numeric_limits<double>::max()));
 
 	//Used for timing loop.
 	auto start = std::chrono::high_resolution_clock::now();
@@ -83,13 +86,108 @@ std::pair<Matrix, Matrix> SimulatedAnnealing::SA_results()
 
 ////Private Functions////
 
+//Used to calculate initial/final temps. Does a single iteration 
+//at a specified temperature.
+void SimulatedAnnealing::Iter(double& T, double& threshold, double& obj, int& counter_bad, double& pbad_sum)
+{
+	//generate random numbers
+	RandomNumbers rn = generate_random_numbers(threshold);
+
+	//Update the appropriate matrix. Store the old value that was changed.
+	double old_value = am.change_value(rn.G_or_E, rn.row, rn.col, rn.new_value);
+
+	//Get result of objective function
+	double obj_new = objective_function();
+
+	//Calculate the possibility of accuracy, and compate it with a random
+	//number between 0 and 1 in order to compare
+	std::uniform_real_distribution<double> distribution(0.0, std::nextafter(1.0, std::numeric_limits<double>::max()));
+	double SA_pAcc = exp( -(obj_new - obj) / T);
+	double SA_r = distribution(engine);
+
+	if (SA_r < SA_pAcc)
+	{
+		obj = obj_new;
+	}
+	else
+	{
+		am.change_value(rn.G_or_E, rn.row, rn.col, old_value);
+		counter_bad += 1;
+		pbad_sum += SA_pAcc;
+	}
+}
+
+//Used to calculate initial/final temps. Gets the average pBad 
+//at a given temperature by calling Iter function a large
+//amount of times.
+double SimulatedAnnealing::GetpBad(double& T, double& threshold)
+{
+	int iter_counter = 0;
+	int counter_bad  = 0;
+	double pbad_sum  = 0;
+	double obj    = 1e30;
+	
+	while (iter_counter < 10000)
+	{
+		Iter(T, threshold, obj, counter_bad, pbad_sum);
+		iter_counter++;
+	}
+	
+	if (counter_bad == 0)
+		return 1;
+
+	return (pbad_sum / counter_bad);
+}
+
 //Used to set temperature variables
 void SimulatedAnnealing::set_temps()
 {
-	//Get inital and final temperatures. Set current temp to inital temp
-	initial_temp = 100.0;
-	final_temp = 1.0;
-	current_temp = initial_temp;
+	//For debugging. Counters for while loops
+	int w1 = 0;
+	int w2 = 0;
+	int w3 = 0;
+	
+ 	//Store the original G and E matrices. Need to revert back
+ 	//to the original G and E matrices every time GetpBad is 
+ 	//called.
+ 	std::pair<Matrix, Matrix> originals = am.get_best();
+
+	double T = 1;					//Start with 1
+	double targetpBad = 0.99;		//Initially, 99% chance of accepting bad moves
+	
+	//Find starting temperature
+	while (GetpBad(T, targetpBad) > targetpBad)	//May be too high already
+	{
+		T /= 10;
+		am.reset(originals.first, originals.second);
+		w1++;
+	}
+
+	while (GetpBad(T, targetpBad) < targetpBad)	//Jump back up by factors of 2
+	{
+		T *= 2;
+		am.reset(originals.first, originals.second);
+		w2++;
+	}
+
+	initial_temp = T;				//Set initial temp
+
+	//Find ending temperature
+	targetpBad = 1e-6;				//want to end with tiny pBad
+	
+	while (GetpBad(T, targetpBad) > targetpBad)	//Jump down by factors of 10 until pBad < 1e-6
+	{
+		T /= 10;
+		am.reset(originals.first, originals.second);
+		w3++;
+	}
+
+	final_temp = T;					//Set final temp
+	
+	am.reset(originals.first, originals.second);
+
+	//For debugging. Print out the counters of each while loop.
+	std::cout << "while1: " << w1 << "\twhile2: " << w2 << "\twhile3: " << w3 << std::endl;
 
 	//Set the lambda constant
 	SA_lambda = -log(final_temp / initial_temp);
@@ -99,10 +197,9 @@ void SimulatedAnnealing::set_temps()
 void SimulatedAnnealing::set_iterations()
 {
 	//Set inital iteration and final iteration 
-	//Using 1,000,000 for final iteration in order to test
-	//how many iterations happen per second
+	//Change the value of SA_ITERATIONS in SimulatedAnnealing.hpp
 	SA_iter = 0;
-	SA_numIters = 10e5;
+	SA_numIters = SA_ITERATIONS; 
 }
 
 //Used to generae a random value for a randomly selected matrix
@@ -128,6 +225,31 @@ RandomNumbers SimulatedAnnealing::generate_random_numbers()
 	}
 	return result;
 }
+
+//Used to generate a random value for a randomly selected matrix. This function is
+//different from the one above only on how they calculate the random number. This
+//function is used when finding the initial and final temperatures.
+RandomNumbers SimulatedAnnealing::generate_random_numbers(double& threshold)
+{
+	RandomNumbers result;
+
+	//Randomly select matrix
+	result.G_or_E = matrix_selector(engine);
+	std::pair<int, int> matrix_dimensions = am.get_matrix_dimensions(result.G_or_E);
+
+	//Randomly select row and column
+	std::uniform_int_distribution<int> row_selector{0, matrix_dimensions.first - 1};
+	std::uniform_int_distribution<int> col_selector{0, matrix_dimensions.second - 1};
+	result.row = row_selector(engine);
+	result.col = col_selector(engine);
+
+	//Randomly generate new value
+	std::uniform_real_distribution<double> new_value_generator{ -sqrt(threshold), sqrt(threshold) };
+	result.new_value = new_value_generator(engine);
+
+	return result;
+}
+
 
 //Returns the result of the objective function
 //Updated: Uses the proper objective function calculation. Most of the calculations

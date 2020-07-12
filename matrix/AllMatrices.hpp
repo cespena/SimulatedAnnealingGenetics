@@ -15,8 +15,9 @@ public:
 	AllMatrices& operator=(AllMatrices&& am);
 	
 	//Setup functions
-	void set_matrix(int selector, std::vector<double> values, int r, int c);	//Assign matrix/vector its dimensions and values
+	void set_matrix(int selector, std::vector<double> values, int r = 0, int c = 0);	//Assign matrix/vector its dimensions and values
 	void setup();	//Create T_G, T_E and GR_guess_tr.
+	void reset(Matrix& g, Matrix& e);	//reset G and E and update values that need to be changed
 
 	//Used to give random value to a random matrix's element
 	//Updated to accept bool value
@@ -31,6 +32,7 @@ public:
 	std::pair<Matrix, Matrix> get_best();	//return G and E
 	
 	//For debugging. Prints all the member variables.
+	void print_vector(std::string name, const std::vector<double>& vec);
 	void print();
 
 
@@ -40,12 +42,12 @@ private:
 	Matrix E;
 	Matrix X_tr;
 	Matrix Y_tr;
-	Matrix GR_tr;
+	std::vector<double> GR_tr;
 
 	//Need to be made
 	Matrix T_G;
 	Matrix T_E;
-	Matrix GR_guess_tr;
+	std::vector<double> GR_guess_tr;
 
 	//Sum values to calculate Pearson Correlation Coefficient
 	double sum_x;

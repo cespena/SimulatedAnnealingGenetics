@@ -39,7 +39,6 @@ int main()
 		am.set_matrix(i, temp, new_matrices[i].first, new_matrices[i].second);
 	}
 
-
 	//Calculate T_G, T_E and the result of the T_G dot T_E. 
 	am.setup();
 

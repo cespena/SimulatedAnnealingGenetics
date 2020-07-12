@@ -3,12 +3,14 @@
 
 #include <iostream>
 #include <cmath>
+#include <limits>
 #include <random>
 #include <utility>
 #include <chrono>
 #include "CircularBuffer.hpp"
 #include "../matrix/AllMatrices.hpp"
 
+#define SA_ITERATIONS 1e6
 
 //Used for returning new random values
 struct RandomNumbers
@@ -51,9 +53,12 @@ private:
 	double pBad;
 
 	//Private Functions
+	void Iter(double& T, double& threshold, double& obj, int& counter_bad, double& pbad_sum);
+	double GetpBad(double& T, double& threshold);
 	void set_temps();
 	void set_iterations();
 	RandomNumbers generate_random_numbers();
+	RandomNumbers generate_random_numbers(double& threshold);
 	double objective_function();
 
 
