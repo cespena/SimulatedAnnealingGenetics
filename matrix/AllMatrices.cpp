@@ -6,32 +6,47 @@ AllMatrices& AllMatrices::operator=(AllMatrices&& am)
 	return *this;
 }
 
-//Assigns a matrix or vector its appropriate dimensions and values. When assigning
-//GR_tr, do not assign values for r and c. The declaration of this function in 
-//AllMatrices.hpp gives r and c a default value of 0. This is because r and c are
-//not necessary when assigning GR_tr. Only the vector is important. 
-void AllMatrices::set_matrix(int selector, std::vector<double> values, int r, int c)
+
+
+//Assigns a matrix/vector its values. Gets its values from a file. 
+//Returns an empty string if the proper flag was used to assign 
+//a matrix/vector its value. If an incorrect flag was used, it 
+//returns that flag. This is used for printing out errors.
+std::string AllMatrices::set_values(char selector, std::string filename)
 {
+	std::ifstream f(filename);
+
 	switch(selector)
 	{
-		case 0:
-			G = Matrix(values, r, c);
+		case 'G':
+			//G = Matrix(values, r, c);
+			f >> G;
 			break;
-		case 1:
-			E = Matrix(values, r, c);
+		case 'E':
+			//E = Matrix(values, r, c);
+			f >> E;
 			break;
-		case 2:
-			X_tr = Matrix(values, r, c);
+		case 'X':
+			//X_tr = Matrix(values, r, c);
+			f >> X_tr;
 			break;
-		case 3:
-			Y_tr = Matrix(values, r, c);
+		case 'Y':
+			//Y_tr = Matrix(values, r, c);
+			f >> Y_tr;
 			break;
-		case 4:
-			GR_tr = values;
+		case 'g':
+			//GR_tr = values;
+			double temp;
+			while (f >> temp)
+				GR_tr.push_back(temp);
 			break;
 		default:
-			break;
+			std::string wrong_flag = "-";
+			wrong_flag += selector;
+			return wrong_flag;
 	}
+
+	return "";
 }
 
 //Creates T_G, T_E and GR_guess_tr. Initializes sum values for the Pearson
@@ -205,7 +220,7 @@ std::pair<Matrix, Matrix> AllMatrices::get_best()
 //For debugging. Helper function to print vectors
 void AllMatrices::print_vector(std::string name, const std::vector<double>& vec)
 {
-	std::cout << name << ':' << std::endl;
+	std::cout << name << ": " << vec.size() << "x1" << std::endl;
 	for (auto i : vec)
 		std::cout << i << std::endl;
 	std::cout << std::endl;
@@ -214,14 +229,14 @@ void AllMatrices::print_vector(std::string name, const std::vector<double>& vec)
 //Print all matrices. Used for debugging
 void AllMatrices::print()
 {
-/*
+
 	//Uncomment the matrices that you need to print
-	std::cout << "G:\n" << G << std::endl;
-	std::cout << "X_tr:\n" << X_tr << std::endl;
-	std::cout << "T_G:\n" << T_G << std::endl;
-	std::cout << "E:\n" << E << std::endl;
-	std::cout << "Y_tr:\n" << Y_tr << std::endl;
-	std::cout << "T_E:\n" << T_E << std::endl;
+	std::cout << "G: " << G.get_rows() << 'x' << G.get_cols() << "\n" << G << std::endl;
+	std::cout << "X_tr: " << X_tr.get_rows() << 'x' << X_tr.get_cols() << "\n" << X_tr << std::endl;
+	std::cout << "T_G: " << T_G.get_rows() << 'x' << T_G.get_cols() << "\n" << T_G << std::endl;
+	std::cout << "E: " << E.get_rows() << 'x' << E.get_cols() << "\n" << E << std::endl;
+	std::cout << "Y_tr: " << Y_tr.get_rows() << 'x' << Y_tr.get_cols() << "\n" << Y_tr << std::endl;
+	std::cout << "T_E: " << T_E.get_rows() << 'x' << T_E.get_cols() << "\n" << T_E << std::endl;
 	print_vector("GR_guess_tr", GR_guess_tr);
 	print_vector("GR_tr", GR_tr);
 
@@ -231,6 +246,6 @@ void AllMatrices::print()
 	std::cout << "sum_yy:\t" << sum_yy << std::endl;
 	std::cout << "sum_xy:\t" << sum_xy << std::endl;
 	std::cout << "difference mean: " << difference_vector_mean() << std::endl;
-*/
+
 
 }

@@ -1,6 +1,9 @@
-a.out
+Train_SA
 main.o
 matrix/Matrix.o
 matrix/AllMatrices.o
 annealing/CircularBuffer.o
 annealing/SimulatedAnnealing.o
+files/
+G_results
+E_results

@@ -2,6 +2,8 @@
 #define MATRIX_HPP
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <utility>
 
@@ -28,6 +30,7 @@ public:
 
 	//Output Matrix
 	friend std::ostream& operator<<(std::ostream& os, const Matrix& m);
+	friend std::istream& operator>>(std::istream& os,  Matrix& m);
 
 private:
 	int rows;

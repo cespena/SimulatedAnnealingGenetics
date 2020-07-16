@@ -10,7 +10,6 @@
 #include "CircularBuffer.hpp"
 #include "../matrix/AllMatrices.hpp"
 
-#define SA_ITERATIONS 1e6
 
 //Used for returning new random values
 struct RandomNumbers
@@ -26,7 +25,7 @@ class SimulatedAnnealing
 {
 public:
 	SimulatedAnnealing() = default;
-	void run(AllMatrices&& matrices);
+	void run(AllMatrices&& matrices, unsigned long int iters);
 	std::pair<Matrix, Matrix> SA_results();
 
 private:
@@ -56,7 +55,7 @@ private:
 	void Iter(double& T, double& threshold, double& obj, int& counter_bad, double& pbad_sum);
 	double GetpBad(double& T, double& threshold);
 	void set_temps();
-	void set_iterations();
+	void set_iterations(unsigned long int iters);
 	RandomNumbers generate_random_numbers();
 	RandomNumbers generate_random_numbers(double& threshold);
 	double objective_function();

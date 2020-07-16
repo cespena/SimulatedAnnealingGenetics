@@ -134,6 +134,29 @@ std::ostream& operator<<(std::ostream& os, const Matrix& m)
 	return os;
 }
 
+std::istream& operator>>(std::istream& is, Matrix& m)
+{
+	std::string buffer;
+	double value_buffer;
+
+	m.rows = 0;
+	m.cols = 0;
+
+	while (getline(is, buffer))
+	{
+		std::vector<double> vector_temp;
+		std::stringstream ss(buffer);
+	
+		while (ss >> value_buffer)
+			vector_temp.push_back( value_buffer );
+	
+		m.matrix.push_back(vector_temp);
+		m.rows++;
+	}
+	m.cols = m.matrix[0].size();
+
+	return is;
+}
 
 //Private Member Functions
 double Matrix::dot_product(const std::vector<double>& lhs_row, const int& rhs_col, Matrix& rhs) const

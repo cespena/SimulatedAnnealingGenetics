@@ -1,6 +1,6 @@
 #include "SimulatedAnnealing.hpp"
 
-void SimulatedAnnealing::run(AllMatrices&& matrices)
+void SimulatedAnnealing::run(AllMatrices&& matrices, unsigned long int iters)
 {
 	//get all the matrices that were created;
 	am = matrices;
@@ -11,10 +11,10 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 
 	//Initialize temperatures and loop counters
 	set_temps();
-	set_iterations();
+	set_iterations(iters);
 
 	//For debugging. Print initial and final temps.
-	std::cout << "Initial temp: " << initial_temp << "\tFinal temp: " << final_temp << std::endl;
+	//std::cout << "Initial temp: " << initial_temp << "\tFinal temp: " << final_temp << std::endl;
 
 	//Probability of accepting bad result
 	pBad = 0.1;
@@ -72,10 +72,10 @@ void SimulatedAnnealing::run(AllMatrices&& matrices)
 	//Used for timing loop.
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop - start);
-	std::cout << "Time taken: " << duration.count() << std::endl;
+	//std::cout << "Time taken: " << duration.count() << std::endl;
 
 	//For debugging. Used to count accepted and rejected
-	std::cout << "count is: " << SA_iter << '\t' << "if's: " << if_count  << '\t' << "else's: " << else_count << std::endl;
+	//std::cout << "count is: " << SA_iter << '\t' << "if's: " << if_count  << '\t' << "else's: " << else_count << std::endl;
 }
 
 //Returns G and E. Call this after the algorithm has executed
@@ -187,19 +187,19 @@ void SimulatedAnnealing::set_temps()
 	am.reset(originals.first, originals.second);
 
 	//For debugging. Print out the counters of each while loop.
-	std::cout << "while1: " << w1 << "\twhile2: " << w2 << "\twhile3: " << w3 << std::endl;
+	//std::cout << "while1: " << w1 << "\twhile2: " << w2 << "\twhile3: " << w3 << std::endl;
 
 	//Set the lambda constant
 	SA_lambda = -log(final_temp / initial_temp);
 }
 
 //Used to set while loop iterations
-void SimulatedAnnealing::set_iterations()
+void SimulatedAnnealing::set_iterations(unsigned long int iters)
 {
 	//Set inital iteration and final iteration 
 	//Change the value of SA_ITERATIONS in SimulatedAnnealing.hpp
 	SA_iter = 0;
-	SA_numIters = SA_ITERATIONS; 
+	SA_numIters = iters; 
 }
 
 //Used to generae a random value for a randomly selected matrix

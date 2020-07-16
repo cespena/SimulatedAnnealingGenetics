@@ -1,8 +1,10 @@
 #ifndef ALLMATRICES_HPP
 #define ALLMATRICES_HPP
 
+#include <iostream>
 #include <cassert>
 #include <cmath>
+#include <string>
 #include <utility>
 #include "Matrix.hpp"
 
@@ -15,7 +17,7 @@ public:
 	AllMatrices& operator=(AllMatrices&& am);
 	
 	//Setup functions
-	void set_matrix(int selector, std::vector<double> values, int r = 0, int c = 0);	//Assign matrix/vector its dimensions and values
+	std::string set_values(char selector, std::string file);	//Assign matrix/vector its dimensions and values
 	void setup();	//Create T_G, T_E and GR_guess_tr.
 	void reset(Matrix& g, Matrix& e);	//reset G and E and update values that need to be changed
 
